@@ -63,8 +63,8 @@ type Node struct {
 	PUID uuid.UUID
 	//DatasetID is the id of the dataset to which the node belongs to
 	DatasetID uint
-	//Metadata holds the metadata corresponding to the node
-	Metadata []NodeMetadata
+	//NodeMetadatas holds the metadata corresponding to the node
+	NodeMetadatas []NodeMetadata
 }
 
 //NodeMetadata stores the metadata associated with a node
@@ -86,7 +86,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 	dim := false
 	name := ""
 	word := ""
-	for _, v := range n.Metadata {
+	for _, v := range n.NodeMetadatas {
 		if v.Prop == NodeMetadataPropWord {
 			word = v.Value
 		} else if v.Prop == NodeMetadataPropName {
@@ -107,7 +107,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 	}
 	return interpreter.ColumnNode{
 		UID:           n.UID.String(),
-		Word:          word,
+		Word:          []rune(word),
 		PUID:          n.PUID.String(),
 		Name:          name,
 		Children:      []interpreter.ValueNode{},
@@ -121,12 +121,27 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 //FromColumn converts the interpreter column node to node
 func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 	metadata := []NodeMetadata{}
-	for _, v := range n.Metadata {
+	for _, v := range n.NodeMetadatas {
 		metadata = append(metadata, v)
+	}
+	if len(metadata) == 0 {
+		metadata = append(metadata, NodeMetadata{
+			Prop: NodeMetadataPropWord,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropName,
+		}, NodeMetadata{
+			Prop: NodeMetadataDimension,
+		}, NodeMetadata{
+			Prop: NodeMetadataMeasure,
+		}, NodeMetadata{
+			Prop: NodeMetadataAggregationFn,
+		}, NodeMetadata{
+			Prop: NodeMetadataDataType,
+		})
 	}
 	for i := 0; i < len(metadata); i++ {
 		if metadata[i].Prop == NodeMetadataPropWord {
-			metadata[i].Value = c.Word
+			metadata[i].Value = string(c.Word)
 		} else if metadata[i].Prop == NodeMetadataPropName {
 			metadata[i].Value = c.Name
 		} else if metadata[i].Prop == NodeMetadataDimension {
@@ -155,5 +170,14 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			}
 		}
 	}
-	return Node{}
+	uid, _ := uuid.Parse(c.UID)
+	puid, _ := uuid.Parse(c.PUID)
+	return Node{
+		Model:         n.Model,
+		UID:           uid,
+		Type:          c.Type(),
+		PUID:          puid,
+		DatasetID:     n.DatasetID,
+		NodeMetadatas: metadata,
+	}
 }
