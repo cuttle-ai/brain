@@ -27,6 +27,8 @@ const (
 	NodeMetadataAggregationFn = "AggregationFn"
 	//NodeMetadataPropDataType is the metadata property of a node for data type
 	NodeMetadataDataType = "DataType"
+	//NodeMetadataPropDescription is the metadata property of a node for description
+	NodeMetadataPropDescription = "Description"
 )
 
 const (
@@ -86,6 +88,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 	dim := false
 	name := ""
 	word := ""
+	description := ""
 	for _, v := range n.NodeMetadatas {
 		if v.Prop == NodeMetadataPropWord {
 			word = v.Value
@@ -103,6 +106,8 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 			if _, ok := NodeMetadataDataTypes[v.Value]; ok {
 				dT = v.Value
 			}
+		} else if v.Prop == NodeMetadataPropDescription {
+			description = v.Value
 		}
 	}
 	return interpreter.ColumnNode{
@@ -115,6 +120,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 		Measure:       mes,
 		AggregationFn: aggFn,
 		DataType:      dT,
+		Description:   description,
 	}
 }
 
@@ -137,6 +143,8 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			Prop: NodeMetadataAggregationFn,
 		}, NodeMetadata{
 			Prop: NodeMetadataDataType,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDescription,
 		})
 	}
 	for i := 0; i < len(metadata); i++ {
@@ -168,6 +176,8 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			} else {
 				metadata[i].Value = interpreter.DataTypeString
 			}
+		} else if metadata[i].Prop == NodeMetadataPropDescription {
+			metadata[i].Value = c.Description
 		}
 	}
 	uid, _ := uuid.Parse(c.UID)
