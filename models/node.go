@@ -29,6 +29,8 @@ const (
 	NodeMetadataDataType = "DataType"
 	//NodeMetadataPropDescription is the metadata property of a node for description
 	NodeMetadataPropDescription = "Description"
+	//NodeMetadataPropDefaultDateFieldUID is the metadata property of a node for default date field uid
+	NodeMetadataPropDefaultDateFieldUID = "DefaultDateFieldUID"
 )
 
 const (
@@ -186,6 +188,74 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 		Model:         n.Model,
 		UID:           uid,
 		Type:          c.Type(),
+		PUID:          puid,
+		DatasetID:     n.DatasetID,
+		NodeMetadatas: metadata,
+	}
+}
+
+//TableNode returns table node converted form of the node
+func (n Node) TableNode() interpreter.TableNode {
+	name := ""
+	word := ""
+	description := ""
+	defauldDateFieldUID := ""
+	for _, v := range n.NodeMetadatas {
+		if v.Prop == NodeMetadataPropWord {
+			word = v.Value
+		} else if v.Prop == NodeMetadataPropName {
+			name = v.Value
+		} else if v.Prop == NodeMetadataPropDefaultDateFieldUID {
+			defauldDateFieldUID = v.Value
+		} else if v.Prop == NodeMetadataPropDescription {
+			description = v.Value
+		}
+	}
+	return interpreter.TableNode{
+		UID:                 n.UID.String(),
+		Word:                []rune(word),
+		PUID:                n.PUID.String(),
+		Name:                name,
+		Children:            []interpreter.ColumnNode{},
+		DefaultDateFieldUID: defauldDateFieldUID,
+		Description:         description,
+	}
+}
+
+//FromTable converts the interpreter table node to node
+func (n Node) FromTable(t interpreter.TableNode) Node {
+	metadata := []NodeMetadata{}
+	for _, v := range n.NodeMetadatas {
+		metadata = append(metadata, v)
+	}
+	if len(metadata) == 0 {
+		metadata = append(metadata, NodeMetadata{
+			Prop: NodeMetadataPropWord,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropName,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDefaultDateFieldUID,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDescription,
+		})
+	}
+	for i := 0; i < len(metadata); i++ {
+		if metadata[i].Prop == NodeMetadataPropWord {
+			metadata[i].Value = string(t.Word)
+		} else if metadata[i].Prop == NodeMetadataPropName {
+			metadata[i].Value = t.Name
+		} else if metadata[i].Prop == NodeMetadataPropDescription {
+			metadata[i].Value = t.Description
+		} else if metadata[i].Prop == NodeMetadataPropDefaultDateFieldUID {
+			metadata[i].Value = t.DefaultDateFieldUID
+		}
+	}
+	uid, _ := uuid.Parse(t.UID)
+	puid, _ := uuid.Parse(t.PUID)
+	return Node{
+		Model:         n.Model,
+		UID:           uid,
+		Type:          t.Type(),
 		PUID:          puid,
 		DatasetID:     n.DatasetID,
 		NodeMetadatas: metadata,
