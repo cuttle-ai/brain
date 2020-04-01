@@ -29,4 +29,6 @@ type Dataset struct {
 	ResourceID uint
 	//UploadedDataset is the uploaded data set info
 	UploadedDataset interface{} `gorm:"-"`
+	//TableCreated indicates whether the table is created for the dataset in the datastore
+	TableCreated bool
 }
