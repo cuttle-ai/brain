@@ -31,4 +31,6 @@ type Dataset struct {
 	UploadedDataset interface{} `gorm:"-"`
 	//TableCreated indicates whether the table is created for the dataset in the datastore
 	TableCreated bool
+	//DatastoreID is the id of the datastore where the data is physically stored for the dataset
+	DatastoreID uint
 }

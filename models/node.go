@@ -76,6 +76,8 @@ type NodeMetadata struct {
 	gorm.Model
 	//NodeID is the id of the node to which the metadata belongs to
 	NodeID uint
+	//DatasetID is the id of the dataset to which the node belongs to
+	DatasetID uint
 	//Prop stores the metadata property
 	Prop string
 	//Value stores the metadata value
@@ -150,6 +152,7 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 		})
 	}
 	for i := 0; i < len(metadata); i++ {
+		metadata[i].DatasetID = n.DatasetID
 		if metadata[i].Prop == NodeMetadataPropWord {
 			metadata[i].Value = string(c.Word)
 		} else if metadata[i].Prop == NodeMetadataPropName {
@@ -240,6 +243,7 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 		})
 	}
 	for i := 0; i < len(metadata); i++ {
+		metadata[i].DatasetID = n.DatasetID
 		if metadata[i].Prop == NodeMetadataPropWord {
 			metadata[i].Value = string(t.Word)
 		} else if metadata[i].Prop == NodeMetadataPropName {
