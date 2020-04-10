@@ -43,9 +43,9 @@ const (
 	DatasetAccessTypeCreator = 10
 )
 
-//DatsetUserMappings has the mapping of a dataset to  user.
+//DatsetUserMapping has the mapping of a dataset to  user.
 //this includes the access type. All users with creator access and dashboard access will be listed in this table.
-type DatsetUserMappings struct {
+type DatsetUserMapping struct {
 	gorm.Model
 	//DatasetID is the ID of the dataset
 	DatasetID uint
