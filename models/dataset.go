@@ -34,3 +34,23 @@ type Dataset struct {
 	//DatastoreID is the id of the datastore where the data is physically stored for the dataset
 	DatastoreID uint
 }
+
+const (
+	//DatasetAccessTypeDashboard gives minimum access to the user.
+	//The user won't get the dataset listed in datasets list. But will have minimum access to see the data through dashboard
+	DatasetAccessTypeDashboard = 0
+	//DatasetAccessTypeCreator gives user access to delete/update and all the previleges on the dataset
+	DatasetAccessTypeCreator = 10
+)
+
+//DatsetUserMappings has the mapping of a dataset to  user.
+//this includes the access type. All users with creator access and dashboard access will be listed in this table.
+type DatsetUserMappings struct {
+	gorm.Model
+	//DatasetID is the ID of the dataset
+	DatasetID uint
+	//UserID is the ID of the user
+	UserID uint
+	//AccessType is the type of access for the user to the dataset
+	AccessType int
+}

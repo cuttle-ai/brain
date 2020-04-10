@@ -20,13 +20,13 @@ const (
 	//NodeMetadataPropName is the metadata property of a node for name
 	NodeMetadataPropName = "Name"
 	//NodeMetadataPropDimension is the metadata property of a node for dimension
-	NodeMetadataDimension = "Dimension"
+	NodeMetadataPropDimension = "Dimension"
 	//NodeMetadataPropMeasure is the metadata property of a node for measure
-	NodeMetadataMeasure = "Measure"
+	NodeMetadataPropMeasure = "Measure"
 	//NodeMetadataPropAggregationFn is the metadata property of a node for aggregation function
-	NodeMetadataAggregationFn = "AggregationFn"
+	NodeMetadataPropAggregationFn = "AggregationFn"
 	//NodeMetadataPropDataType is the metadata property of a node for data type
-	NodeMetadataDataType = "DataType"
+	NodeMetadataPropDataType = "DataType"
 	//NodeMetadataPropDescription is the metadata property of a node for description
 	NodeMetadataPropDescription = "Description"
 	//NodeMetadataPropDefaultDateFieldUID is the metadata property of a node for default date field uid
@@ -98,15 +98,15 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 			word = v.Value
 		} else if v.Prop == NodeMetadataPropName {
 			name = v.Value
-		} else if v.Prop == NodeMetadataDimension && v.Value == NodeMetadataPropValueTrue {
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueTrue {
 			dim = true
-		} else if v.Prop == NodeMetadataMeasure && v.Value == NodeMetadataPropValueTrue {
+		} else if v.Prop == NodeMetadataPropMeasure && v.Value == NodeMetadataPropValueTrue {
 			mes = true
-		} else if v.Prop == NodeMetadataAggregationFn {
+		} else if v.Prop == NodeMetadataPropAggregationFn {
 			if _, ok := NodeMetadataAggregationFns[v.Value]; ok {
 				aggFn = v.Value
 			}
-		} else if v.Prop == NodeMetadataDataType {
+		} else if v.Prop == NodeMetadataPropDataType {
 			if _, ok := NodeMetadataDataTypes[v.Value]; ok {
 				dT = v.Value
 			}
@@ -140,13 +140,13 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 		}, NodeMetadata{
 			Prop: NodeMetadataPropName,
 		}, NodeMetadata{
-			Prop: NodeMetadataDimension,
+			Prop: NodeMetadataPropDimension,
 		}, NodeMetadata{
-			Prop: NodeMetadataMeasure,
+			Prop: NodeMetadataPropMeasure,
 		}, NodeMetadata{
-			Prop: NodeMetadataAggregationFn,
+			Prop: NodeMetadataPropAggregationFn,
 		}, NodeMetadata{
-			Prop: NodeMetadataDataType,
+			Prop: NodeMetadataPropDataType,
 		}, NodeMetadata{
 			Prop: NodeMetadataPropDescription,
 		})
@@ -157,25 +157,25 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			metadata[i].Value = string(c.Word)
 		} else if metadata[i].Prop == NodeMetadataPropName {
 			metadata[i].Value = c.Name
-		} else if metadata[i].Prop == NodeMetadataDimension {
+		} else if metadata[i].Prop == NodeMetadataPropDimension {
 			if c.Dimension {
 				metadata[i].Value = NodeMetadataPropValueTrue
 			} else {
 				metadata[i].Value = NodeMetadataPropValueFalse
 			}
-		} else if metadata[i].Prop == NodeMetadataMeasure {
+		} else if metadata[i].Prop == NodeMetadataPropMeasure {
 			if c.Measure {
 				metadata[i].Value = NodeMetadataPropValueTrue
 			} else {
 				metadata[i].Value = NodeMetadataPropValueFalse
 			}
-		} else if metadata[i].Prop == NodeMetadataAggregationFn {
+		} else if metadata[i].Prop == NodeMetadataPropAggregationFn {
 			if _, ok := NodeMetadataAggregationFns[c.AggregationFn]; ok {
 				metadata[i].Value = c.AggregationFn
 			} else {
 				metadata[i].Value = interpreter.AggregationFnCount
 			}
-		} else if metadata[i].Prop == NodeMetadataDataType {
+		} else if metadata[i].Prop == NodeMetadataPropDataType {
 			if _, ok := NodeMetadataDataTypes[c.DataType]; ok {
 				metadata[i].Value = c.DataType
 			} else {
