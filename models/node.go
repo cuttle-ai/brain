@@ -84,6 +84,20 @@ type NodeMetadata struct {
 	Value string
 }
 
+//InterpreterNode will convert a node to corresponding interpreter node
+func (n Node) InterpreterNode() (interpreter.Node, bool) {
+	switch n.Type {
+	case interpreter.Column:
+		cN := n.ColumnNode()
+		return &cN, true
+	case interpreter.Table:
+		tN := n.TableNode()
+		return &tN, true
+	default:
+		return nil, false
+	}
+}
+
 //ColumnNode returns column node converted form of the node
 func (n Node) ColumnNode() interpreter.ColumnNode {
 	dT := interpreter.DataTypeString
