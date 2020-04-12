@@ -69,6 +69,8 @@ type Node struct {
 	DatasetID uint
 	//NodeMetadatas holds the metadata corresponding to the node
 	NodeMetadatas []NodeMetadata
+	//Parent denotes the the parent for the node
+	Parent *Node `gorm:"-"`
 }
 
 //NodeMetadata stores the metadata associated with a node
@@ -128,7 +130,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 			description = v.Value
 		}
 	}
-	return interpreter.ColumnNode{
+	result := interpreter.ColumnNode{
 		UID:           n.UID.String(),
 		Word:          []rune(word),
 		PUID:          n.PUID.String(),
@@ -140,6 +142,11 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 		DataType:      dT,
 		Description:   description,
 	}
+	if n.Parent != nil && n.PUID.String() == n.Parent.UID.String() && n.Parent.Type == interpreter.Table {
+		pN := n.TableNode()
+		result.PN = &pN
+	}
+	return result
 }
 
 //FromColumn converts the interpreter column node to node

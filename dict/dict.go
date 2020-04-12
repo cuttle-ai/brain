@@ -34,7 +34,7 @@ func (d DAgg) Get(ID string) (interpreter.DICT, error) {
 	 * We will get all the datasets the user has access to
 	 * Then we will get the nodes belonging to those datasets
 	 */
-	result := interpreter.DICT{}
+	result := interpreter.DICT{Map: map[string]interpreter.Token{}}
 	//parsing the user id
 	id, err := strconv.Atoi(ID)
 	if err != nil {
@@ -108,6 +108,7 @@ func (d DAgg) GetDataset(ID string) (Dataset, error) {
 	//then we will iterate through the node metadatas and store them to the correspoding nodes in the map
 	//finally will convert them to interpreter nodes
 	nMap := map[uint]models.Node{}
+	var tableNode *models.Node
 	for _, n := range nodes {
 		nMap[n.ID] = n
 	}
@@ -121,8 +122,15 @@ func (d DAgg) GetDataset(ID string) (Dataset, error) {
 		}
 		n.NodeMetadatas = append(n.NodeMetadatas, m)
 		nMap[n.ID] = n
+		if n.Type == interpreter.Table {
+			tableNode = &n
+		}
 	}
 	for _, n := range nMap {
+		if n.Type != interpreter.Table && tableNode != nil {
+			n.Parent = tableNode
+			n.PUID = tableNode.UID
+		}
 		iN, ok := n.InterpreterNode()
 		if !ok {
 			continue
