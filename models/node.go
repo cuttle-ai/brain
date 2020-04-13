@@ -5,6 +5,8 @@
 package models
 
 import (
+	"strconv"
+
 	"github.com/cuttle-ai/octopus/interpreter"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -31,6 +33,8 @@ const (
 	NodeMetadataPropDescription = "Description"
 	//NodeMetadataPropDefaultDateFieldUID is the metadata property of a node for default date field uid
 	NodeMetadataPropDefaultDateFieldUID = "DefaultDateFieldUID"
+	//NodeMetadataPropDatastoreID is the metadata property of a node for giving the datastore to which the node belongs to
+	NodeMetadataPropDatastoreID = "NodeMetadataPropDatastoreID"
 )
 
 const (
@@ -224,6 +228,7 @@ func (n Node) TableNode() interpreter.TableNode {
 	word := ""
 	description := ""
 	defauldDateFieldUID := ""
+	datastoreID := 0
 	for _, v := range n.NodeMetadatas {
 		if v.Prop == NodeMetadataPropWord {
 			word = v.Value
@@ -233,6 +238,8 @@ func (n Node) TableNode() interpreter.TableNode {
 			defauldDateFieldUID = v.Value
 		} else if v.Prop == NodeMetadataPropDescription {
 			description = v.Value
+		} else if v.Prop == NodeMetadataPropDatastoreID {
+			datastoreID, _ = strconv.Atoi(v.Value)
 		}
 	}
 	return interpreter.TableNode{
@@ -243,6 +250,7 @@ func (n Node) TableNode() interpreter.TableNode {
 		Children:            []interpreter.ColumnNode{},
 		DefaultDateFieldUID: defauldDateFieldUID,
 		Description:         description,
+		DatastoreID:         uint(datastoreID),
 	}
 }
 
@@ -261,6 +269,8 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 			Prop: NodeMetadataPropDefaultDateFieldUID,
 		}, NodeMetadata{
 			Prop: NodeMetadataPropDescription,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDatastoreID,
 		})
 	}
 	for i := 0; i < len(metadata); i++ {
@@ -273,6 +283,8 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 			metadata[i].Value = t.Description
 		} else if metadata[i].Prop == NodeMetadataPropDefaultDateFieldUID {
 			metadata[i].Value = t.DefaultDateFieldUID
+		} else if metadata[i].Prop == NodeMetadataPropDatastoreID {
+			metadata[i].Value = strconv.Itoa(t.DatastoreID)
 		}
 	}
 	uid, _ := uuid.Parse(t.UID)
