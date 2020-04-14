@@ -147,7 +147,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 		Description:   description,
 	}
 	if n.Parent != nil && n.PUID.String() == n.Parent.UID.String() && n.Parent.Type == interpreter.Table {
-		pN := n.TableNode()
+		pN := n.Parent.TableNode()
 		result.PN = &pN
 	}
 	return result
@@ -284,7 +284,7 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 		} else if metadata[i].Prop == NodeMetadataPropDefaultDateFieldUID {
 			metadata[i].Value = t.DefaultDateFieldUID
 		} else if metadata[i].Prop == NodeMetadataPropDatastoreID {
-			metadata[i].Value = strconv.Itoa(t.DatastoreID)
+			metadata[i].Value = strconv.Itoa(int(t.DatastoreID))
 		}
 	}
 	uid, _ := uuid.Parse(t.UID)

@@ -121,7 +121,7 @@ func (d DAgg) GetDataset(ID string) (Dataset, error) {
 			n.NodeMetadatas = []models.NodeMetadata{}
 		}
 		n.NodeMetadatas = append(n.NodeMetadatas, m)
-		nMap[n.ID] = n
+		nMap[m.NodeID] = n
 		if n.Type == interpreter.Table {
 			tableNode = &n
 		}
