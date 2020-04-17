@@ -10,27 +10,27 @@ import "github.com/cuttle-ai/octopus/interpreter"
 //Metric holds the information about an metric to be used in the visualization
 type Metric struct {
 	//ResourceID of the item which is represented by the metric
-	ResourceID string
+	ResourceID string `json:"resource_id,omitempty"`
 	//DisplayName is the name to be used as a display
-	DisplayName string
+	DisplayName string `json:"display_name,omitempty"`
 	//Name of the actual item in the data
-	Name string
+	Name string `json:"name,omitempty"`
 	//Measure flag states whether the metric is a measure type value
-	Measure bool
+	Measure bool `json:"measure,omitempty"`
 	//Dimension flag states whether the metric is a dimension type value
-	Dimension bool
+	Dimension bool `json:"dimension,omitempty"`
 }
 
 //Visualization has the information about a visualization
 type Visualization struct {
 	//Metrics holds the information about the metrics to be used in a visualization
-	Metrics []Metric
+	Metrics []Metric `json:"metrics,omitempty"`
 	//Type indicates the type of the visualization
-	Type string
+	Type string `json:"type,omitempty"`
 	//Title of the visualization
-	Title string
+	Title string `json:"title,omitempty"`
 	//Description of the visualization
-	Description string
+	Description string `json:"description,omitempty"`
 }
 
 const (
