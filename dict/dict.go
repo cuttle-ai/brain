@@ -7,6 +7,7 @@ package dict
 
 import (
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -140,7 +141,7 @@ func (d DAgg) GetDataset(ID string) (Dataset, error) {
 			tok = interpreter.Token{Word: iN.TokenWord(), Nodes: []interpreter.Node{}}
 		}
 		tok.Nodes = append(tok.Nodes, iN)
-		result.D[string(iN.TokenWord())] = tok
+		result.D[strings.ToLower(string(iN.TokenWord()))] = tok
 	}
 
 	return result, nil
