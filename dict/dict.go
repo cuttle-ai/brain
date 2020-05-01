@@ -29,7 +29,7 @@ func NewDAgg(db *gorm.DB, l log.Log) *DAgg {
 }
 
 //Get returns the user dictionary from the database
-func (d DAgg) Get(ID string) (interpreter.DICT, error) {
+func (d DAgg) Get(ID string, update bool) (interpreter.DICT, error) {
 	/*
 	 * We will convert the id to integer
 	 * We will get all the datasets the user has access to
@@ -54,6 +54,9 @@ func (d DAgg) Get(ID string) (interpreter.DICT, error) {
 	//iterating through the list and getting the datasets
 	for _, v := range datasets {
 		req := DatasetRequest{ID: strconv.Itoa(int(v.DatasetID)), SubscribeID: ID, Type: DatasetGet, Out: make(chan DatasetRequest)}
+		if update {
+			req.Type = DatasetUpdate
+		}
 		DatasetInputChannel <- req
 		req = <-req.Out
 		if !req.Valid {
@@ -260,13 +263,21 @@ func Datasets(in chan DatasetRequest) {
 			go SendDatasetToChannel(req.Out, req)
 			break
 		case DatasetUpdate:
+			req.Dataset, req.Valid = datasets[req.ID]
+			if !req.Valid {
+				break
+			}
+			req.Dataset, req.Valid = getDataset(req.ID)
+			req.Dataset.LastUsed = time.Now()
 			v, ok := subscribedMap[req.ID]
 			if !ok {
 				break
 			}
 			for _, k := range v {
-				go interpreter.SendDICTToChannel(interpreter.DICTInputChannel, interpreter.DICTRequest{ID: k, Type: interpreter.DICTRemove})
+				go interpreter.SendDICTToChannel(interpreter.DICTInputChannel, interpreter.DICTRequest{ID: k, Type: interpreter.DICTUpdate})
 			}
+			go SendDatasetToChannel(req.Out, req)
+			break
 		case DatasetRemove:
 			//we will iterate over the cache and check the last usage
 			t := time.Now()
