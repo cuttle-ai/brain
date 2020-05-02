@@ -34,6 +34,7 @@ func (d DAgg) Get(ID string, update bool) (interpreter.DICT, error) {
 	 * We will convert the id to integer
 	 * We will get all the datasets the user has access to
 	 * Then we will get the nodes belonging to those datasets
+	 * Then we will add the system dict
 	 */
 	result := interpreter.DICT{Map: map[string]interpreter.Token{}}
 	//parsing the user id
@@ -70,6 +71,16 @@ func (d DAgg) Get(ID string, update bool) (interpreter.DICT, error) {
 			}
 			result.Map[k] = t
 		}
+	}
+
+	//adding the system dict
+	systemnDict := SystemDICT()
+	for k, v := range systemnDict.Map {
+		existing, ok := result.Map[k]
+		if ok {
+			v.Nodes = append(v.Nodes, existing.Nodes...)
+		}
+		result.Map[strings.ToLower(k)] = v
 	}
 
 	return result, nil
@@ -296,4 +307,35 @@ func cacheClearCheck(in chan DatasetRequest) {
 		time.Sleep(DatasetClearCheckInterval)
 		go SendDatasetToChannel(in, DatasetRequest{Type: DatasetRemove})
 	}
+}
+
+//SystemDICT returns the system dictionary available for all the users
+func SystemDICT() interpreter.DICT {
+	d := map[string]interpreter.Token{
+		"is": {
+			Word:  []rune("is"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "equal-is", Word: []rune("is"), Operation: interpreter.EqOperator}},
+		},
+		"not": {
+			Word:  []rune("not"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "not-equal", Word: []rune("not"), Operation: interpreter.NotEqOperator}},
+		},
+		"<": {
+			Word:  []rune("<"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "less-than", Word: []rune("<="), Operation: interpreter.LessOperator}},
+		},
+		">": {
+			Word:  []rune(">"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "greater-than", Word: []rune(">="), Operation: interpreter.GreaterOperator}},
+		},
+		"less than": {
+			Word:  []rune("less than"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "less-than", Word: []rune("<="), Operation: interpreter.LessOperator}},
+		},
+		"greater than": {
+			Word:  []rune("greater than"),
+			Nodes: []interpreter.Node{&interpreter.OperatorNode{UID: "greater-than", Word: []rune(">="), Operation: interpreter.GreaterOperator}},
+		},
+	}
+	return interpreter.DICT{Map: d}
 }

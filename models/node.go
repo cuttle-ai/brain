@@ -35,6 +35,10 @@ const (
 	NodeMetadataPropDefaultDateFieldUID = "DefaultDateFieldUID"
 	//NodeMetadataPropDatastoreID is the metadata property of a node for giving the datastore to which the node belongs to
 	NodeMetadataPropDatastoreID = "NodeMetadataPropDatastoreID"
+	//NodeMetadataPropKBType is the metadata property of a knowledge base node for giving kb type of the kb node
+	NodeMetadataPropKBType = "KBType"
+	//NodeMetadataPropOperation is the metadata property of a operation node for giving the type of the operation
+	NodeMetadataPropOperation = "Operation"
 )
 
 const (
@@ -42,6 +46,22 @@ const (
 	NodeMetadataPropValueTrue = "true"
 	//NodeMetadataPropValueFalse is the value to be put for false as metadata value
 	NodeMetadataPropValueFalse = "false"
+	//NodeMetadataPropValueSystemKB is the value to be put for SystemKB as KBType metadata value
+	NodeMetadataPropValueSystemKB = "1"
+	//NodeMetadataPropValueUserKB is the value to be put for UserKB as KBType metadata value
+	NodeMetadataPropValueUserKB = "2"
+	//NodeMetadataPropValueEqOperator is the value to be put for Equal operator as operation of operator node
+	NodeMetadataPropValueEqOperator = "="
+	//NodeMetadataPropValueNotEqOperator is the value to be put for Not Equal operator as operation of operator node
+	NodeMetadataPropValueNotEqOperator = "<>"
+	//NodeMetadataPropValueGreaterOperator is the value to be put for Greater than or Equal operator as operation of operator node
+	NodeMetadataPropValueGreaterOperator = ">="
+	//NodeMetadataPropValueLessOperator is the value to be put for Less than or Equal operator as operation of operator node
+	NodeMetadataPropValueLessOperator = "<="
+	//NodeMetadataPropValueContainsOperator is the value to be put for Contains operator as operation of operator node
+	NodeMetadataPropValueContainsOperator = "HAS"
+	//NodeMetadataPropValueLikeOperator is the value to be put for Like operator as operation of operator node
+	NodeMetadataPropValueLikeOperator = "LIKE"
 )
 
 var (
@@ -99,6 +119,12 @@ func (n Node) InterpreterNode() (interpreter.Node, bool) {
 	case interpreter.Table:
 		tN := n.TableNode()
 		return &tN, true
+	case interpreter.KnowledgeBase:
+		kN := n.KnowledgeBaseNode()
+		return &kN, true
+	case interpreter.Operator:
+		oN := n.OperatorNode()
+		return &oN, true
 	default:
 		return nil, false
 	}
@@ -295,6 +321,139 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 		Type:          t.Type(),
 		PUID:          puid,
 		DatasetID:     n.DatasetID,
+		NodeMetadatas: metadata,
+	}
+}
+
+//KnowledgeBaseNode returns the knowledgebase node converted form of the node
+func (n Node) KnowledgeBaseNode() interpreter.KnowledgeBaseNode {
+	name := ""
+	word := ""
+	description := ""
+	kbType := interpreter.SystemKB
+	for _, v := range n.NodeMetadatas {
+		if v.Prop == NodeMetadataPropWord {
+			word = v.Value
+		} else if v.Prop == NodeMetadataPropName {
+			name = v.Value
+		} else if v.Prop == NodeMetadataPropDescription {
+			description = v.Value
+		} else if v.Prop == NodeMetadataPropKBType && v.Value == NodeMetadataPropValueUserKB {
+			kbType = interpreter.UserKB
+		}
+	}
+	return interpreter.KnowledgeBaseNode{
+		UID:         n.UID.String(),
+		Word:        []rune(word),
+		Name:        name,
+		Children:    []interpreter.Node{},
+		Description: description,
+		KBType:      kbType,
+	}
+}
+
+//FromKnowledgeBase converts the interpreter knowledgebase node to node
+func (n Node) FromKnowledgeBase(k interpreter.KnowledgeBaseNode) Node {
+	metadata := []NodeMetadata{}
+	for _, v := range n.NodeMetadatas {
+		metadata = append(metadata, v)
+	}
+	if len(metadata) == 0 {
+		metadata = append(metadata, NodeMetadata{
+			Prop: NodeMetadataPropWord,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropName,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDescription,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropKBType,
+		})
+	}
+	for i := 0; i < len(metadata); i++ {
+		metadata[i].DatasetID = n.DatasetID
+		if metadata[i].Prop == NodeMetadataPropWord {
+			metadata[i].Value = string(k.Word)
+		} else if metadata[i].Prop == NodeMetadataPropName {
+			metadata[i].Value = k.Name
+		} else if metadata[i].Prop == NodeMetadataPropDescription {
+			metadata[i].Value = k.Description
+		} else if metadata[i].Prop == NodeMetadataPropKBType {
+			metadata[i].Value = strconv.Itoa(int(k.KBType))
+		}
+	}
+	uid, _ := uuid.Parse(k.UID)
+	return Node{
+		Model:         n.Model,
+		UID:           uid,
+		Type:          k.Type(),
+		NodeMetadatas: metadata,
+	}
+}
+
+//OperatorNode returns the operator node converted form of the node
+func (n Node) OperatorNode() interpreter.OperatorNode {
+	word := ""
+	operation := ""
+	for _, v := range n.NodeMetadatas {
+		if v.Prop == NodeMetadataPropWord {
+			word = v.Value
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueEqOperator {
+			operation = interpreter.EqOperator
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueNotEqOperator {
+			operation = interpreter.NotEqOperator
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueGreaterOperator {
+			operation = interpreter.GreaterOperator
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueLessOperator {
+			operation = interpreter.LessOperator
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueContainsOperator {
+			operation = interpreter.ContainsOperator
+		} else if v.Prop == NodeMetadataPropDimension && v.Value == NodeMetadataPropValueLikeOperator {
+			operation = interpreter.LikeOperator
+		}
+	}
+	result := interpreter.OperatorNode{
+		UID:       n.UID.String(),
+		Word:      []rune(word),
+		PUID:      n.PUID.String(),
+		Operation: operation,
+	}
+	if n.Parent != nil && n.PUID.String() == n.Parent.UID.String() {
+		pN, ok := n.Parent.InterpreterNode()
+		if ok {
+			result.PN = pN
+		}
+	}
+	return result
+}
+
+//FromOperatorNode converts the interpreter operator node to node
+func (n Node) FromOperatorNode(o interpreter.OperatorNode) Node {
+	metadata := []NodeMetadata{}
+	for _, v := range n.NodeMetadatas {
+		metadata = append(metadata, v)
+	}
+	if len(metadata) == 0 {
+		metadata = append(metadata, NodeMetadata{
+			Prop: NodeMetadataPropWord,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropOperation,
+		})
+	}
+	for i := 0; i < len(metadata); i++ {
+		metadata[i].DatasetID = n.DatasetID
+		if metadata[i].Prop == NodeMetadataPropWord {
+			metadata[i].Value = string(o.Word)
+		} else if metadata[i].Prop == NodeMetadataPropOperation {
+			metadata[i].Value = o.Operation
+		}
+	}
+	uid, _ := uuid.Parse(o.UID)
+	puid, _ := uuid.Parse(o.PUID)
+	return Node{
+		Model:         n.Model,
+		UID:           uid,
+		Type:          o.Type(),
+		PUID:          puid,
 		NodeMetadatas: metadata,
 	}
 }
