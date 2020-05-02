@@ -124,3 +124,9 @@ func (d *Dataset) UpdateColumns(l log.Log, conn *gorm.DB, cols []Node) ([]Node, 
 	}
 	return cols, tx.Commit().Error
 }
+
+//UpdateTable will update the given table
+func (d *Dataset) UpdateTable(conn *gorm.DB, table Node) (Node, error) {
+	err := conn.Save(&table).Error
+	return table, err
+}

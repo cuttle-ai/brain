@@ -39,6 +39,8 @@ const (
 	NodeMetadataPropKBType = "KBType"
 	//NodeMetadataPropOperation is the metadata property of a operation node for giving the type of the operation
 	NodeMetadataPropOperation = "Operation"
+	//NodeMetadataPropDateFormat is the metadata property of a column's csv data if the given column is of data type date
+	NodeMetadataPropDateFormat = "DateFormat"
 )
 
 const (
@@ -67,16 +69,16 @@ const (
 var (
 	//NodeMetadataAggregationFns is the map containing the supported aggregation functions
 	NodeMetadataAggregationFns = map[string]struct{}{
-		interpreter.AggregationFnAvg:   struct{}{},
-		interpreter.AggregationFnCount: struct{}{},
-		interpreter.AggregationFnSum:   struct{}{},
+		interpreter.AggregationFnAvg:   {},
+		interpreter.AggregationFnCount: {},
+		interpreter.AggregationFnSum:   {},
 	}
 	//NodeMetadataDataTypes is the map containing the supported datatypes
 	NodeMetadataDataTypes = map[string]struct{}{
-		interpreter.DataTypeDate:   struct{}{},
-		interpreter.DataTypeFloat:  struct{}{},
-		interpreter.DataTypeInt:    struct{}{},
-		interpreter.DataTypeString: struct{}{},
+		interpreter.DataTypeDate:   {},
+		interpreter.DataTypeFloat:  {},
+		interpreter.DataTypeInt:    {},
+		interpreter.DataTypeString: {},
 	}
 )
 
@@ -139,6 +141,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 	name := ""
 	word := ""
 	description := ""
+	dateFormat := ""
 	for _, v := range n.NodeMetadatas {
 		if v.Prop == NodeMetadataPropWord {
 			word = v.Value
@@ -158,6 +161,8 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 			}
 		} else if v.Prop == NodeMetadataPropDescription {
 			description = v.Value
+		} else if v.Prop == NodeMetadataPropDateFormat {
+			dateFormat = v.Value
 		}
 	}
 	result := interpreter.ColumnNode{
@@ -171,6 +176,7 @@ func (n Node) ColumnNode() interpreter.ColumnNode {
 		AggregationFn: aggFn,
 		DataType:      dT,
 		Description:   description,
+		DateFormat:    dateFormat,
 	}
 	if n.Parent != nil && n.PUID.String() == n.Parent.UID.String() && n.Parent.Type == interpreter.Table {
 		pN := n.Parent.TableNode()
@@ -200,6 +206,8 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			Prop: NodeMetadataPropDataType,
 		}, NodeMetadata{
 			Prop: NodeMetadataPropDescription,
+		}, NodeMetadata{
+			Prop: NodeMetadataPropDateFormat,
 		})
 	}
 	for i := 0; i < len(metadata); i++ {
@@ -234,6 +242,8 @@ func (n Node) FromColumn(c interpreter.ColumnNode) Node {
 			}
 		} else if metadata[i].Prop == NodeMetadataPropDescription {
 			metadata[i].Value = c.Description
+		} else if metadata[i].Prop == NodeMetadataPropDateFormat {
+			metadata[i].Value = c.DateFormat
 		}
 	}
 	uid, _ := uuid.Parse(c.UID)
