@@ -97,6 +97,8 @@ type Node struct {
 	NodeMetadatas []NodeMetadata
 	//Parent denotes the the parent for the node
 	Parent *Node `gorm:"-"`
+	//DefaultDateField holds the default date field if any for a table
+	DefaultDateField *interpreter.ColumnNode `gorm:"-"`
 }
 
 //NodeMetadata stores the metadata associated with a node
@@ -285,6 +287,7 @@ func (n Node) TableNode() interpreter.TableNode {
 		Name:                name,
 		Children:            []interpreter.ColumnNode{},
 		DefaultDateFieldUID: defauldDateFieldUID,
+		DefaultDateField:    n.DefaultDateField,
 		Description:         description,
 		DatastoreID:         uint(datastoreID),
 	}
@@ -326,12 +329,13 @@ func (n Node) FromTable(t interpreter.TableNode) Node {
 	uid, _ := uuid.Parse(t.UID)
 	puid, _ := uuid.Parse(t.PUID)
 	return Node{
-		Model:         n.Model,
-		UID:           uid,
-		Type:          t.Type(),
-		PUID:          puid,
-		DatasetID:     n.DatasetID,
-		NodeMetadatas: metadata,
+		Model:            n.Model,
+		UID:              uid,
+		Type:             t.Type(),
+		PUID:             puid,
+		DatasetID:        n.DatasetID,
+		NodeMetadatas:    metadata,
+		DefaultDateField: t.DefaultDateField,
 	}
 }
 

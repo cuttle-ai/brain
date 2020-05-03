@@ -141,6 +141,18 @@ func (d DAgg) GetDataset(ID string) (Dataset, error) {
 			tableNode = &n
 		}
 	}
+	//if default date exists add it to the node
+	if tableNode != nil && len(tableNode.TableNode().DefaultDateFieldUID) > 0 {
+		tConverted := tableNode.TableNode()
+		for _, n := range nMap {
+			if n.Type != interpreter.Table && tConverted.DefaultDateFieldUID == n.UID.String() {
+				c := n.ColumnNode()
+				tConverted.DefaultDateField = &c
+				*tableNode = tableNode.FromTable(tConverted)
+				break
+			}
+		}
+	}
 	for _, n := range nMap {
 		if n.Type != interpreter.Table && tableNode != nil {
 			n.Parent = tableNode
