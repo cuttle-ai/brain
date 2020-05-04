@@ -286,18 +286,12 @@ func Datasets(in chan DatasetRequest) {
 			go SendDatasetToChannel(req.Out, req)
 			break
 		case DatasetUpdate:
-			req.Dataset, req.Valid = datasets[req.ID]
-			if !req.Valid {
-				break
-			}
+			delete(datasets, req.ID)
 			req.Dataset, req.Valid = getDataset(req.ID)
 			req.Dataset.LastUsed = time.Now()
-			v, ok := subscribedMap[req.ID]
-			if !ok {
-				break
-			}
+			v, _ := subscribedMap[req.ID]
 			for _, k := range v {
-				go interpreter.SendDICTToChannel(interpreter.DICTInputChannel, interpreter.DICTRequest{ID: k, Type: interpreter.DICTUpdate})
+				go interpreter.SendDICTToChannel(interpreter.DICTInputChannel, interpreter.DICTRequest{ID: k, Type: interpreter.DICTRemove})
 			}
 			go SendDatasetToChannel(req.Out, req)
 			break
