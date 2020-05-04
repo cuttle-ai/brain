@@ -11,17 +11,17 @@ import (
 )
 
 /*
- * This file contains the table visualization definition
+ * This file contains the line chart visualization definition
  */
 
-//Table will return a table visualization for a given query
-func Table(q *interpreter.Query) Visualization {
+//LineChart will return a line visualization for a given query
+func LineChart(q *interpreter.Query) Visualization {
 	/*
 	 * We will iterate through the select columns and add them to metrics and description
 	 * We will iterate through the group by columns and add them to metrics and description
 	 */
 	var description strings.Builder
-	result := Visualization{Title: "Table", Metrics: []Metric{}, Type: TableType}
+	result := Visualization{Title: "Line Chart", Metrics: []Metric{}, Type: LineChartType}
 	//iterating through the select columns
 	for k, v := range q.Select {
 		//adding to metrics

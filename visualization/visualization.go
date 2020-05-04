@@ -36,10 +36,18 @@ type Visualization struct {
 const (
 	//TableType is the table type of visualization
 	TableType = "TABLE"
+	//LineChartType is the line chart type of visualization
+	LineChartType = "LINECHART"
 )
 
 //SuggestVisualization suggests the visualization to be used for the query
 func SuggestVisualization(q *interpreter.Query) Visualization {
-	//For now we are blindly suggesting table visualization
+	/*
+	 * If the no of select columns = 1 and group by columns = 1 we select line chart
+	 * Default is table
+	 */
+	if len(q.Select) == 1 && len(q.GroupBy) == 1 {
+		return LineChart(q)
+	}
 	return Table(q)
 }
