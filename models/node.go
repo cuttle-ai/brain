@@ -7,6 +7,7 @@ package models
 import (
 	"strconv"
 
+	"github.com/cuttle-ai/brain/log"
 	"github.com/cuttle-ai/octopus/interpreter"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -470,4 +471,37 @@ func (n Node) FromOperatorNode(o interpreter.OperatorNode) Node {
 		PUID:          puid,
 		NodeMetadatas: metadata,
 	}
+}
+
+//UpdateNodeMetadata updates the given node metadata. If the node metadata is not created, will create the same
+func UpdateNodeMetadata(l log.Log, conn *gorm.DB, metadata []NodeMetadata) error {
+	/*
+	 * We will begin the transaction
+	 * Will iterate through the node metadata
+	 * And update the node metadata
+	 */
+	//starting the transaction
+	tx := conn.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	//iterating through the metadata
+	for _, v := range metadata {
+		//and updating the metadata
+		err := tx.Where(" id = ? and dataset_id = ?", v.ID, v.DatasetID).Save(&v).Error
+		if err != nil {
+			//error while updating the nodemetadata
+			l.Error("error while updating the node metadata with ID", v.ID)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return nil
 }

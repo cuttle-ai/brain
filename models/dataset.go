@@ -130,3 +130,38 @@ func (d *Dataset) UpdateTable(conn *gorm.DB, table Node) (Node, error) {
 	err := conn.Save(&table).Error
 	return table, err
 }
+
+//HasUserAccess will return true if the user has access to all the given datasets
+func HasUserAccess(l log.Log, conn *gorm.DB, datasetIds []uint, userID uint) (bool, error) {
+	/*
+	 * We will get the list of datasets the user has access to
+	 * Then will iterate through the list and convert it to a map
+	 * Then will iterate through the passed list and check whether they exist
+	 */
+	datasets := []DatsetUserMapping{}
+
+	//getting the list of datasets user has access to
+	err := conn.Where("user_id = ?", userID).Find(&datasets).Error
+	if err != nil {
+		//error while getting the list of datasets the user has access to
+		l.Error("error while getting the list of datasets the user has access to for the user", userID)
+		return false, err
+	}
+
+	//iterating through the list and mapping to a map
+	dMap := map[uint]struct{}{}
+	for _, v := range datasets {
+		dMap[v.DatasetID] = struct{}{}
+	}
+
+	//iterating through the list of given datatsets and checking whether they exist in the map
+	for _, v := range datasets {
+		if _, ok := dMap[v]; !ok {
+			l.Error("user doesn't has access to the dataset", v)
+			return false, nil
+		}
+	}
+
+	//everything is good
+	return true, nil
+}
