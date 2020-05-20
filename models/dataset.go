@@ -156,7 +156,7 @@ func HasUserAccess(l log.Log, conn *gorm.DB, datasetIds []uint, userID uint) (bo
 
 	//iterating through the list of given datatsets and checking whether they exist in the map
 	for _, v := range datasets {
-		if _, ok := dMap[v]; !ok {
+		if _, ok := dMap[v.DatasetID]; !ok {
 			l.Error("user doesn't has access to the dataset", v)
 			return false, nil
 		}

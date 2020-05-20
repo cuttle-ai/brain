@@ -488,7 +488,7 @@ func UpdateNodeMetadata(l log.Log, conn *gorm.DB, metadata []NodeMetadata) error
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return nil, err
+		return err
 	}
 
 	//iterating through the metadata

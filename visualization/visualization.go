@@ -38,6 +38,8 @@ const (
 	TableType = "TABLE"
 	//LineChartType is the line chart type of visualization
 	LineChartType = "LINECHART"
+	//ColumnChartType is the column chart type of visualization
+	ColumnChartType = "COLUMNCHART"
 )
 
 //SuggestVisualization suggests the visualization to be used for the query
@@ -48,6 +50,9 @@ func SuggestVisualization(q *interpreter.Query) Visualization {
 	 */
 	if len(q.Select) == 1 && len(q.GroupBy) == 1 {
 		return LineChart(q)
+	}
+	if len(q.Select) >= 1 && len(q.GroupBy) == 1 {
+		return ColumnChart(q)
 	}
 	return Table(q)
 }
