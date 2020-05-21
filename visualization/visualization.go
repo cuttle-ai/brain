@@ -40,6 +40,8 @@ const (
 	LineChartType = "LINECHART"
 	//ColumnChartType is the column chart type of visualization
 	ColumnChartType = "COLUMNCHART"
+	//PieChartType is the pie chart type of visualization
+	PieChartType = "PIECHART"
 )
 
 //SuggestVisualization suggests the visualization to be used for the query
@@ -48,6 +50,9 @@ func SuggestVisualization(q *interpreter.Query) Visualization {
 	 * If the no of select columns = 1 and group by columns = 1 we select line chart
 	 * Default is table
 	 */
+	if len(q.Select) == 1 && len(q.GroupBy) == 1 && len(q.Result) <= 10 {
+		return PieChart(q)
+	}
 	if len(q.Select) == 1 && len(q.GroupBy) == 1 {
 		return LineChart(q)
 	}
