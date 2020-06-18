@@ -60,3 +60,13 @@ func NewAppCtx(accessToken, discoverToken, discoveryAddress string) AppContext {
 		l:                log.NewLogger(),
 	}
 }
+
+//WithAccessToken will return a app context with all the proerties from base app context except access token
+func WithAccessToken(ctx AppContext, accessToken string) AppContext {
+	return &appCtxImpl{
+		accesToken:       accessToken,
+		discoveryAddress: ctx.DiscoveryAddress(),
+		discoveryToken:   ctx.DiscoveryToken(),
+		l:                ctx.Logger(),
+	}
+}
