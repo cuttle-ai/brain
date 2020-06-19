@@ -15,4 +15,8 @@ type Notification struct {
 const (
 	//InfoNotification is the notitfication for info type of notification
 	InfoNotification = "INFO_NOTIFICATION"
+	//ErrorNotification is the notitfication for error type of notification
+	ErrorNotification = "ERROR_NOTIFICATION"
+	//SuccessNotification is the notitfication for success type of notification
+	SuccessNotification = "SUCCESS_NOTIFICATION"
 )
